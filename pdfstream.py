@@ -183,6 +183,7 @@ uploaded_file = st.file_uploader("Upload a PDF file. NOTE: This file must have a
 sublevel_listing = stt.st_toggle_switch("Include Sublevels?", key="sublevel_listing", default_value=False) #toggle switch for sublevels
 with st.form(key="dvarform", clear_on_submit=False): #streamlit form for user input
     st.header("PDF Section Selector 📚")
+    st.subheader("NOTE: This only seems to be working for full sections, but not partial sections. Fix coming soon.")
     if uploaded_file is None:
         st.subheader("Please upload a PDF file")
     if uploaded_file is not None:
