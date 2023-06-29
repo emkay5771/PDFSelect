@@ -180,10 +180,12 @@ def dynamicmake(contents, session): #compiles pdf after collecting all the neces
 
 
 uploaded_file = st.file_uploader("Upload a PDF file. NOTE: This file must have an outline for the program to work.", type=["pdf"]) #upload the pdf file
-sublevel_listing = stt.st_toggle_switch("Include Sublevels?", key="sublevel_listing", default_value=False) #toggle switch for sublevels
+sublevel_listing = stt.st_toggle_switch("Include Sublevels?", key="sublevel_listing", default_value=True) #toggle switch for sublevels
 with st.form(key="dvarform", clear_on_submit=False): #streamlit form for user input
     st.header("PDF Section Selector 📚")
-    st.subheader("NOTE: This only seems to be working for full sections, but not partial sections. Fix coming soon.")
+    st.subheader("NOTE: This only seems to be working for full sections, but not partial subsections. Fix coming soon.")
+    st.warning('NOTE2: Please ensure that "Include Sublevels?" is set to True. This is a known bug that will be fixed soon.')
+    st.write("If you select a subsection currently, it will include from the subsection selected through the entire section. ")
     if uploaded_file is None:
         st.subheader("Please upload a PDF file")
     if uploaded_file is not None:
