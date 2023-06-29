@@ -288,9 +288,9 @@ if submit_button: #if the user submits the form, run the following code, which w
         astr=str(b)
         if st.session_state[each[1][1]+astr] == True:
             contents.append(each[1][1])
-            st.write(each[1][1])
-            st.write(contents)
+            #st.write(each[1][1])
         b+=1
+    st.write(contents)
     #dynamicmake(dow, optconv, opt, source, session)
 
     if os.path.exists(f"output_dynamic{session}.pdf"):
