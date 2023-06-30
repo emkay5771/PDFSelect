@@ -19,37 +19,59 @@ st.set_page_config(page_title="PDF Section Selector", page_icon="📚", layout="
 st.header("PDF Section Selector (BETA) 📚")
 def find_next_bookmark(toc, current_index):
     for i in range(current_index + 1, len(toc)):
-        print(f"I = {i}")
+        print(f"Index postion = {i}")
         #TODO: Fix this so that it doesn't break when the last SUBsection is selected
-        if i == len(toc)-1:
-            print("Last section")
-            #if last section is selected, then return the last page of the pdf
-            return toc[i][2] - 1
+        if current_index + 1 >= len(toc):
+            return None
         if toc[i][0] == 1:
+            print(f"Next: {toc[i][2] - 1}")
+            return toc[i][2] - 2
+        elif toc[i][0] == 2:
+            try:
+                z = i
+                while toc[z][0] != 1:
+                    z += 1
+                print(f"Next2: {toc[z][2] -1}")
+                return toc[z][2] - 1
+            except IndexError:
+                return toc[i][2] - 1
+        elif toc[i][0] == 3:
+            print(f"Next3: {toc[i][2] - 1}")
             return toc[i][2] - 1
-        if toc[i][0] == 2:
-            return toc[i][2] - 1
-        if toc[i][0] == 3:
-            return toc[i][2] - 1
-        if toc[i][0] == 4:
+        elif toc[i][0] == 4:
+            print(f"Next4: {toc[i][2] - 1}")
             return toc[i][2] - 1
     return None
 
 def dedupe(pages, pages2, pages3, start_page, end_page): #dedupes the pages when appending, to ensure that pages aren't repeated
     pages2.append(start_page)
     pages2.append(end_page)
-    if start_page in pages:
-        start_page = start_page + 1
-        pages.append(start_page)
-        pages3.append(start_page)
-    if end_page in pages:
-        end_page = end_page - 1
-        pages.append(end_page)
-        pages3.append(end_page)
-    if start_page not in pages:
-        pages.append(start_page)
-    if end_page not in pages:
-        pages.append(end_page)
+    if start_page in pages and end_page in pages:
+        start_page = None
+        end_page = None
+    else:
+        if start_page in pages:
+            while start_page in pages:
+                start_page = start_page + 1
+            if start_page <= end_page:
+                if start_page not in pages:
+                    pages.append(start_page)
+                    pages3.append(start_page)
+            else:
+                start_page = None
+        if end_page in pages:
+            while end_page in pages:
+                end_page = end_page - 1
+            if end_page >= start_page:
+                if end_page not in pages:
+                    pages.append(end_page)
+                    pages3.append(end_page)
+            else:
+                end_page = None
+        if start_page not in pages:
+            pages.append(start_page)
+        if end_page not in pages:
+            pages.append(end_page)
     return start_page,end_page
 
 def dynamicmake(session, contentsdict): #compiles pdf after collecting all the necessary files
@@ -62,6 +84,7 @@ def dynamicmake(session, contentsdict): #compiles pdf after collecting all the n
     #st.write(contentsdict)
     print("dynamicmake2")
     toc = doc.get_toc() #get the table of contents
+
     for q, n in contentsdict.items():
         for i, item in enumerate(toc): #type: ignore
             #st.write(item)
@@ -74,15 +97,19 @@ def dynamicmake(session, contentsdict): #compiles pdf after collecting all the n
                 print(page_num_start)
                 if n == 1:
                     page_num_end = find_next_bookmark(toc, i)
-                    print(page_num_end)
+                    print(f"End: {page_num_end}")
                 elif n != 1:
                     print("Getting next sublevel")
                     page_num_end = find_next_bookmark(toc, i)
-                    print(page_num_end)
+                    print(f"End2: {page_num_end}")
                 page_num_start, page_num_end = dedupe(pages, pages2, pages3, page_num_start, page_num_end) #type: ignore 
-                doc_out.insert_pdf(doc, from_page=page_num_start, to_page=page_num_end) #type: ignore
+                print(f"Start: {page_num_start}. End: {page_num_end}")
+                try:
+                    st.write(f"Appending {item[1]}, which is {page_num_start} to {page_num_end}.")
+                    doc_out.insert_pdf(doc, from_page=page_num_start, to_page=page_num_end) #type: ignore
+                except:
+                    pass
                 break
-
     doc_out.save(os.path.join(output_dir, f"output_dynamic{session}.pdf"))
     doc_out.close()
 
