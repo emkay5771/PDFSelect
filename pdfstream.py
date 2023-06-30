@@ -66,35 +66,7 @@ def rambamenglish(dor, session, opt): # retrieves all rambam versions from chaba
         merger.close()
         os.remove(f"temp{session}.pdf")
 
-def hayomyom(dor, session): #gets hayom yom from chabad.org
-    pdf_options = {
-    'scale': scale3,
-    'margin-top': '0.1in',
-    'margin-right': '0.1in',
-    'margin-bottom': '0.1in',
-    'margin-left': '0.1in',
-    }
-    #st.write(f"{scale}")
-    merger3 = PdfMerger()
-    if os.path.exists(f"Hayom{session}.pdf") != True:
-        for i in dor:
-            #st.write(dor)
-            #st.write(i)
-            driver = webdriver.Chrome(options=options)
-            driver.get(f"https://www.chabad.org/dailystudy/hayomyom.asp?tdate={i}")
-            wait = WebDriverWait(driver, 10)
-            element = wait.until(EC.presence_of_element_located((By.ID, "content")))
-            pdf = driver.execute_cdp_cmd("Page.printToPDF", pdf_options)
-            with open(f"temp{session}.pdf", "ab") as f:
-                f.write(b64decode(pdf["data"]))
-            f.close()
-            driver.quit()
 
-            merger3.append(f"temp{session}.pdf")
-
-        merger3.write(f"Hayom{session}.pdf")
-        merger3.close()
-        os.remove(f"temp{session}.pdf")
 
 def find_next_top_level_bookmark(toc, current_index):
     for i in range(current_index + 1, len(toc)):
@@ -178,42 +150,62 @@ def dynamicmake(contents, session): #compiles pdf after collecting all the neces
     doc_out.save(os.path.join(output_dir, f"output_dynamic{session}.pdf"))
     doc_out.close()
 
-
+def checkbox_callback(checkbox_key):
+    st.session_state["checkbox"] = not st.session_state["checkbox"]
+if 'checkbox' not in st.session_state:
+    st.session_state['checkbox'] = False
 uploaded_file = st.file_uploader("Upload a PDF file. NOTE: This file must have an outline for the program to work.", type=["pdf"]) #upload the pdf file
-sublevel_listing = stt.st_toggle_switch("Include Sublevels?", key="sublevel_listing", default_value=True) #toggle switch for sublevels
+#TODO: when bug is fixed, set default_value to False
+#TODO: make sublevel extraction work
+st.info("NOTE: Subsection listing might get very unwieldy. You have been warned.")
+sublevel_listing = stt.st_toggle_switch("Include Sublevels?", key="sublevel_listing", default_value=False) #toggle switch for sublevels
+
+if uploaded_file is None:
+    st.subheader("Please upload a PDF file")
+if uploaded_file is not None:
+    st.subheader("Select the sections you would like to include in your PDF")
+    doc = fitz.open(stream=uploaded_file.read(), filetype="pdf") #open the pdf file
+    toc = doc.get_toc() #get the table of contents
+    toclist = enumerate(toc)
+    #st.write(toc)
+    a=0
+    for each in toclist:
+        astr=str(a)
+        if each[1][0] == 1:
+            checkbox_key = each[1][1]+astr
+            if checkbox_key not in st.session_state:
+                st.session_state[checkbox_key] = False
+            st.checkbox(each[1][1], key=checkbox_key, on_change=checkbox_callback, args=(checkbox_key,))
+            a+=1
+        if each[1][0] == 2:
+            checkbox_key = f"SUBLEVEL: {each[1][1]+astr}"
+            if checkbox_key not in st.session_state:
+                st.session_state[checkbox_key] = False
+            if sublevel_listing == True:
+                st.checkbox(f"SUBLEVEL: {each[1][1]}", key=checkbox_key, on_change=checkbox_callback, args=(checkbox_key,))
+            a+=1
+        if each[1][0] == 3:
+            checkbox_key = f"SUBLEVEL2: {each[1][1]+astr}"
+            if checkbox_key not in st.session_state:
+                st.session_state[checkbox_key] = False
+            if sublevel_listing == True:
+                st.checkbox(f"SUBLEVEL2: {each[1][1]}", key=checkbox_key, on_change=checkbox_callback, args=(checkbox_key,))
+            a+=1
+        if each[1][0] == 4:
+            checkbox_key = f"SUBLEVEL3: {each[1][1]+astr}"
+            if checkbox_key not in st.session_state:
+                st.session_state[checkbox_key] = False
+            if sublevel_listing == True:
+                st.checkbox(f"SUBLEVEL3: {each[1][1]}", key=checkbox_key, on_change=checkbox_callback, args=(checkbox_key,))
+            a+=1
+
 with st.form(key="dvarform", clear_on_submit=False): #streamlit form for user input
     st.header("PDF Section Selector (ALPHA) 📚")
-    st.info("NOTE: This only seems to be working for full sections, but not partial subsections. Fix coming soon.")
-    st.warning('NOTE2: Please ensure that "Include Sublevels?" is set to True. This is a known bug that will be fixed soon.')
-    st.write("If you select a subsection currently, it will include from the subsection selected through the entire section. ")
-    if uploaded_file is None:
-        st.subheader("Please upload a PDF file")
-    if uploaded_file is not None:
-        st.subheader("Select the sections you would like to include in your PDF")
-        doc = fitz.open(stream=uploaded_file.read(), filetype="pdf") #open the pdf file
-        toc = doc.get_toc() #get the table of contents
-        toclist = enumerate(toc)
-        #st.write(toc)
-        a=0
-        for each in toclist:
-            if sublevel_listing == False:
-                print(each[1][0])
-                if each[1][0] == 2:
-                    continue
-                else:
-                    astr=str(a)
-                    st.checkbox(each[1][1], key=each[1][1]+astr)
-                    a+=1
-            if sublevel_listing == True:
-                astr=str(a)
-                if each[1][0] == 1:
-                    st.checkbox(each[1][1], key=each[1][1]+astr)
-                    a+=1
-                if each[1][0] == 2:
-                    st.checkbox(f"SUBLEVEL: {each[1][1]}", key=each[1][1]+astr) #create a checkbox for each section in the table of contents
-                    a+=1
+    st.warning("NOTE: This only seems to be working for full sections, but not partial subsections. Fix coming soon.")
+    st.info("If you select a subsection currently, it will include from the subsection selected through the entire section. Or it might not work at all 🤷‍♂️.")
 
     submit_button = st.form_submit_button(label="Generate PDF ▶️")
+    
 
 if submit_button: #if the user submits the form, run the following code, which will create the pdf using above functions
     if id not in st.session_state:
@@ -225,10 +217,15 @@ if submit_button: #if the user submits the form, run the following code, which w
     contents=[]
     toc = doc.get_toc() #get the table of contents #type: ignore
     toclist = enumerate(toc)
+    #st.write(toc)
     b=0
+    #for key, value in st.session_state.items():
+        #st.write(key, value)
+            
     for each in toclist:
         astr=str(b)
         if st.session_state[each[1][1]+astr] == True:
+            print(each[1][1])
             contents.append(each[1][1])
             #st.write(each[1][1])
         b+=1
