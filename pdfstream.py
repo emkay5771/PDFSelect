@@ -24,8 +24,18 @@ def find_next_bookmark(toc, current_index):
         if current_index + 1 >= len(toc):
             return None
         if toc[i][0] == 1:
-            print(f"Next: {toc[i][2] - 1}")
-            return toc[i][2] - 2
+            try:
+                x = i+1
+                print(f"X: {x}")
+                print(f"toc[x][0]: {toc[x][0]}")
+                while toc[x][0] != 1:
+                    x += 1
+                    print(f"toc[x][0]: {toc[x][0]}")
+                    print(f"X2: {x}")
+                print(f"Next: {toc[x][2] - 1}")
+                return toc[x][2] - 1
+            except IndexError:
+                return toc[i][2] - 1
         elif toc[i][0] == 2:
             try:
                 z = i
@@ -223,7 +233,7 @@ if submit_button: #if the user submits the form, run the following code, which w
         st.success("PDF created successfully!")
         st.balloons()
         with open(f"output_dynamic{session}.pdf", "rb") as f:
-            st.download_button(label="Download ⬇️", data=f, file_name="Split_PDF.pdf", mime="application/pdf")
+            st.download_button(label="Download ⬇️", data=f, file_name=f"Split_PDF_{uploaded_file.name}-.pdf", mime="application/pdf")
  
     if glob.glob("output_dynamic*.pdf"):
         for file in glob.glob("output_dynamic*.pdf"):
