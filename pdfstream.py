@@ -177,21 +177,21 @@ if uploaded_file is not None:
                 st.session_state[checkbox_key] = False
             st.checkbox(each[1][1], key=checkbox_key, on_change=checkbox_callback, args=(checkbox_key,))
             a+=1
-        if each[1][0] == 2:
+        elif each[1][0] == 2:
             checkbox_key = f"SUBLEVEL: {each[1][1]+astr}"
             if checkbox_key not in st.session_state:
                 st.session_state[checkbox_key] = False
             if sublevel_listing == True:
                 st.checkbox(f"SUBLEVEL: {each[1][1]}", key=checkbox_key, on_change=checkbox_callback, args=(checkbox_key,))
             a+=1
-        if each[1][0] == 3:
+        elif each[1][0] == 3:
             checkbox_key = f"SUBLEVEL2: {each[1][1]+astr}"
             if checkbox_key not in st.session_state:
                 st.session_state[checkbox_key] = False
             if sublevel_listing == True:
                 st.checkbox(f"SUBLEVEL2: {each[1][1]}", key=checkbox_key, on_change=checkbox_callback, args=(checkbox_key,))
             a+=1
-        if each[1][0] == 4:
+        elif each[1][0] == 4:
             checkbox_key = f"SUBLEVEL3: {each[1][1]+astr}"
             if checkbox_key not in st.session_state:
                 st.session_state[checkbox_key] = False
@@ -223,11 +223,26 @@ if submit_button: #if the user submits the form, run the following code, which w
         #st.write(key, value)
             
     for each in toclist:
-        astr=str(b)
-        if st.session_state[each[1][1]+astr] == True:
-            print(each[1][1])
-            contents.append(each[1][1])
-            #st.write(each[1][1])
+        try:
+            astr=str(b)
+            if st.session_state[each[1][1]+astr] == True:
+                print(each[1][1])
+                contents.append(each[1][1])
+                #st.write(each[1][1])
+            elif st.session_state[f"SUBLEVEL: {each[1][1]+astr}"] == True:
+                print(each[1][1])
+                contents.append(each[1][1])
+                #st.write(each[1][1])
+            elif st.session_state[f"SUBLEVEL2: {each[1][1]+astr}"] == True:
+                print(each[1][1])
+                contents.append(each[1][1])
+                #st.write(each[1][1])
+            elif st.session_state[f"SUBLEVEL3: {each[1][1]+astr}"] == True:
+                print(each[1][1])
+                contents.append(each[1][1])
+                #st.write(each[1][1])
+        except:
+            pass
         b+=1
     #st.write(contents)
     dynamicmake(contents, session)
